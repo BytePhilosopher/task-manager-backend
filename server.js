@@ -12,17 +12,26 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// --- Middleware ---
+
 const validateTask = (req, res, next) => {
   const { title } = req.body;
   if (!title || title.trim() === '') {
     return res.status(400).json({ error: "Title cannot be empty" });
   }
+  if (title.trim().length < 3) {
+  return res.status(400).json({ error: "Title must be at least 3 characters" });
+}
   next();
 };
 
-// --- API Endpoints ---
 
+
+let tasks = [];
+if (process.env.USE_MONGO !== 'true') {
+  tasks = require('./tasks.json'); // Fallback to local JSON
+}
+
+// --- API Endpoints ---
 // GET /api/tasks?completed=true|false
 app.get('/api/tasks', async (req, res) => {
   const { completed } = req.query;
